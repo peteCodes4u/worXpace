@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "figlet": "^1.7.0",
+    "inquirer": "^8.2.4"
+  },
+  "name": "worxpace",
+  "version": "1.0.0",
+  "description": "This app is a command-line application for business framework data management that leverages Node.js, Inquirer, and PostgreSQL.",
+  "main": "index.js",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peteCodes4u/worXpace.git"
+  },
+  "keywords": [
+    "node.js",
+    "inquirer",
+    "postgreSQL"
+  ],
+  "author": "Peter Smith (peteCodes4u)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/peteCodes4u/worXpace/issues"
+  },
+  "homepage": "https://github.com/peteCodes4u/worXpace#readme"
+}
