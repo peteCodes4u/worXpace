@@ -1,6 +1,12 @@
 // initialize inquirer
 const inquirer = require("inquirer");
 
+// require dotenv to manage env variables 
+require("dotenv").config();
+
+// configure connection to db with sequelize
+const sequelize = require('./config/connection');
+
 // terminal colors for messages
 const colors = require('colors');
 const green = colors.green;
@@ -94,59 +100,61 @@ const addEmployeePrompt = [
 // initialize function
 function init() {
 
-    console.log(green("Welcome to..."))
-    // welcome ASCII art
-    const figlet = require('figlet');
+    sequelize.sync()
+        .then(() => {
+            console.log(green(`Successfully connected to ` + yellow('worXpace_db')))
 
-    figlet("worXpace", function (err, data) {
-        if (err) {
-            console.log(red, "oops... something went wrong");
-            console.dir(err);
-            return;
-        }
-        console.log(rainbow(data));
+            console.log(green("Welcome to..."))
+            // welcome ASCII art
+            const figlet = require('figlet');
 
-
-        // helpful hint to quit application
-        const helpfulHint = () => {
-            console.log(green(
-                `
-                                   ...Business data manager`
-            ))
-            console.log(yellow(`
-🤓 Helpful hint - to quit this app anytime press ctrl + c 🤓`))
-        }
-
-        helpfulHint();
-
-        // prompt for user input
-        inquirer.prompt(startOptionsPrompt)
-            .then((answers) => {
-                switch (answers.startOptions) {
-                    case "add a department":
-                        inquirer.prompt(addDeptPrompt).then((departmentAnswer) => {
-                            console.log((green(`the department `) + yellow(`${departmentAnswer.deptName}`) + green(` has been successfully added to the database!`)))
-                        });
-                    // add department function needed (call function here)
+            figlet("worXpace", function (err, data) {
+                if (err) {
+                    console.log(red, "oops... something went wrong");
+                    console.dir(err);
+                    return;
                 }
-                switch (answers.startOptions) {
-                    case "add a role":
-                        inquirer.prompt(addRolePrompt).then((roleAnswer) => {
-                            console.log((green(`the role `) + yellow(`${roleAnswer.roleName}`) + green(` has been successfully added to the database!`)))
-                        });
-                    // add role function call to be added here
+                console.log(rainbow(data));
+
+                // helpful hint to quit application
+                const helpfulHint = () => {
+                    console.log(green(
+                        `
+                                       ...Business data manager`
+                    ))
+                    console.log(yellow(`
+    🤓 Helpful hint - to quit this app anytime press ctrl + c 🤓`))
                 }
-                switch (answers.startOptions) {
-                    case "add an employee":
-                        inquirer.prompt(addEmployeePrompt).then((employeeAnswer) => {
-                            console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)))
-                        });
-                    // add employee function call to be added here
-                }
+
+                helpfulHint();
+
+                // prompt for user input
+                inquirer.prompt(startOptionsPrompt)
+                    .then((answers) => {
+                        switch (answers.startOptions) {
+                            case "add a department":
+                                inquirer.prompt(addDeptPrompt).then((departmentAnswer) => {
+                                    console.log((green(`the department `) + yellow(`${departmentAnswer.deptName}`) + green(` has been successfully added to the database!`)))
+                                });
+                            // add department function needed (call function here)
+                        }
+                        switch (answers.startOptions) {
+                            case "add a role":
+                                inquirer.prompt(addRolePrompt).then((roleAnswer) => {
+                                    console.log((green(`the role `) + yellow(`${roleAnswer.roleName}`) + green(` has been successfully added to the database!`)))
+                                });
+                            // add role function call to be added here
+                        }
+                        switch (answers.startOptions) {
+                            case "add an employee":
+                                inquirer.prompt(addEmployeePrompt).then((employeeAnswer) => {
+                                    console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)))
+                                });
+                            // add employee function call to be added here
+                        }
+                    })
             });
-
-    });
-
+        });
 }
 
 init();
