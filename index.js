@@ -4,6 +4,9 @@ const inquirer = require("inquirer");
 // require dotenv to manage env variables 
 require("dotenv").config();
 
+// import pg package for postgres SQL queries
+const { Client } = require('pg');
+
 // configure connection to db with sequelize
 const sequelize = require('./config/connection');
 
@@ -96,6 +99,24 @@ const addEmployeePrompt = [
     }
 ];
 
+const viewAllDepts = function () {
+    const client = new Client({
+        user: 'postgres',
+        host: 'localHost',
+        database: 'worxpace_db',
+        password: 'PsPostgres72737',
+        port: 5432
+    });
+client.connect();
+client.query('SELECT * FROM department', (err, res) => {
+    if (err) {
+        console.error(err);
+        return;
+    }
+    console.log(green(res.rows));
+    client.end();
+});
+};
 
 // initialize function
 function init() {
@@ -151,6 +172,11 @@ function init() {
                                     console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)))
                                 });
                             // add employee function call to be added here
+                        }
+                        switch (answers.startOptions) {
+                            case "view all departments":
+                            viewAllDepts();
+                            break;
                         }
                     })
             });
