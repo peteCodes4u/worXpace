@@ -1,8 +1,11 @@
 {
   "dependencies": {
     "colors": "^1.4.0",
+    "dotenv": "^16.4.5",
     "figlet": "^1.7.0",
-    "inquirer": "^8.2.4"
+    "inquirer": "^8.2.4",
+    "pg": "^8.11.5",
+    "sequelize": "^6.37.3"
   },
   "name": "worxpace",
   "version": "1.0.0",
