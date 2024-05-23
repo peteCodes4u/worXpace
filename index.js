@@ -156,6 +156,14 @@ function promptUser() {
                     executeQuery('db/view-all-departments.sql');
                     break;
             }
+            switch (answers.startOptions) {
+                case "view all roles":
+                    executeQuery('db/view-all-roles.sql')
+            }
+            switch (answers.startOptions) {
+                case "view all employees":
+                    executeQuery('db/view-all-employees.sql')
+            }
         })
 }
 
