@@ -7,8 +7,8 @@ require("dotenv").config();
 // import pg package for postgres SQL queries
 const { Client } = require('pg');
 
-// configure connection to db with sequelize
-const sequelize = require('./config/connection');
+// require file system
+const fs = require('fs');
 
 // terminal colors for messages
 const colors = require('colors');
@@ -99,88 +99,95 @@ const addEmployeePrompt = [
     }
 ];
 
-const viewAllDepts = function () {
+const executeQuery = async function (filePath) {
+    const wrxpcQuery = fs.readFileSync(filePath, 'utf8');
+    // client config
     const client = new Client({
-        user: 'postgres',
-        host: 'localHost',
-        database: 'worxpace_db',
-        password: 'PsPostgres72737',
-        port: 5432
+        user: process.env.USER,
+        host: process.env.HOST,
+        database: process.env.DATABASE,
+        password: process.env.PASSWORD,
+        port: process.env.PORT
     });
-client.connect();
-client.query('SELECT * FROM department', (err, res) => {
-    if (err) {
-        console.error(err);
-        return;
+    try {
+        await client.connect();
+        console.log(green(`Successfully connected to ` + yellow('worXpace_db')))
+        const result = await client.query(wrxpcQuery);
+
+        console.log(green(`Query executed successfully`));
+        console.table(result.rows);
+        promptUser();
+    } catch (error) {
+        console.error(red(`${wrxpcQuery} Error - Query Failed to execute`, error))
+    } finally {
+        await client.end();
     }
-    console.log(green(res.rows));
-    client.end();
-});
+
 };
+
+// prompt user
+function promptUser() {
+    // prompt for user input
+    inquirer.prompt(startOptionsPrompt)
+        .then((answers) => {
+            switch (answers.startOptions) {
+                case "add a department":
+                    inquirer.prompt(addDeptPrompt).then((departmentAnswer) => {
+                        console.log((green(`the department `) + yellow(`${departmentAnswer.deptName}`) + green(` has been successfully added to the database!`)))
+                    });
+                // add department function needed (call function here)
+            }
+            switch (answers.startOptions) {
+                case "add a role":
+                    inquirer.prompt(addRolePrompt).then((roleAnswer) => {
+                        console.log((green(`the role `) + yellow(`${roleAnswer.roleName}`) + green(` has been successfully added to the database!`)))
+                    });
+                // add role function call to be added here
+            }
+            switch (answers.startOptions) {
+                case "add an employee":
+                    inquirer.prompt(addEmployeePrompt).then((employeeAnswer) => {
+                        console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)))
+                    });
+                // add employee function call to be added here
+            }
+            switch (answers.startOptions) {
+                case "view all departments":
+                    executeQuery('db/view-all-departments.sql');
+                    break;
+            }
+        })
+}
 
 // initialize function
 function init() {
 
-    sequelize.sync()
-        .then(() => {
-            console.log(green(`Successfully connected to ` + yellow('worXpace_db')))
+    console.log(green("Welcome to..."))
+    // welcome ASCII art
+    const figlet = require('figlet');
 
-            console.log(green("Welcome to..."))
-            // welcome ASCII art
-            const figlet = require('figlet');
+    figlet("worXpace", function (err, data) {
+        if (err) {
+            console.log(red, "oops... something went wrong");
+            console.dir(err);
+            return;
+        }
+        console.log(rainbow(data));
 
-            figlet("worXpace", function (err, data) {
-                if (err) {
-                    console.log(red, "oops... something went wrong");
-                    console.dir(err);
-                    return;
-                }
-                console.log(rainbow(data));
-
-                // helpful hint to quit application
-                const helpfulHint = () => {
-                    console.log(green(
-                        `
+        // helpful hint to quit application
+        const helpfulHint = () => {
+            console.log(green(
+                `
                                        ...Business data manager`
-                    ))
-                    console.log(yellow(`
-    🤓 Helpful hint - to quit this app anytime press ctrl + c 🤓`))
-                }
+            ))
+            console.log(yellow(`🤓 Helpful hint - to quit this app anytime press ctrl + c 🤓`))
+        }
 
-                helpfulHint();
+        helpfulHint();
+        promptUser();
 
-                // prompt for user input
-                inquirer.prompt(startOptionsPrompt)
-                    .then((answers) => {
-                        switch (answers.startOptions) {
-                            case "add a department":
-                                inquirer.prompt(addDeptPrompt).then((departmentAnswer) => {
-                                    console.log((green(`the department `) + yellow(`${departmentAnswer.deptName}`) + green(` has been successfully added to the database!`)))
-                                });
-                            // add department function needed (call function here)
-                        }
-                        switch (answers.startOptions) {
-                            case "add a role":
-                                inquirer.prompt(addRolePrompt).then((roleAnswer) => {
-                                    console.log((green(`the role `) + yellow(`${roleAnswer.roleName}`) + green(` has been successfully added to the database!`)))
-                                });
-                            // add role function call to be added here
-                        }
-                        switch (answers.startOptions) {
-                            case "add an employee":
-                                inquirer.prompt(addEmployeePrompt).then((employeeAnswer) => {
-                                    console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)))
-                                });
-                            // add employee function call to be added here
-                        }
-                        switch (answers.startOptions) {
-                            case "view all departments":
-                            viewAllDepts();
-                            break;
-                        }
-                    })
-            });
-        });
+    });
+
 }
 
 init();
