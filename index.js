@@ -33,7 +33,7 @@ const startOptionsPrompt = [
             "add a department",
             "add a role",
             "add an employee",
-            "update an employee ",
+            "update an employee",
             "update a role",
         ],
     }
@@ -99,7 +99,86 @@ const addEmployeePrompt = [
     }
 ];
 
+const updateEmployeePrompt = [
+    {
+        type: "input",
+        name: "employeeId",
+        message: magenta("Please enter the employee's Id")
+    },
 
+    {
+        type: "list",
+        name: "employeeMod",
+        message: magenta("Please select the data to be modified"),
+        choices: [
+            "employee first name",
+            "employee last name",
+            "employee role id",
+            "employee manager id",
+        ],
+    },
+]
+
+const updateEmployeeFirstNamePrompt = [{
+    type: "input",
+    name: "employeeFirstName",
+    message: magenta("Please enter the employee's first name")
+}]
+
+const updateEmployeeLastNamePrompt = [{
+    type: "input",
+    name: "employeeLastName",
+    message: magenta("Please enter the employee's last name")
+}]
+
+const updateEmployeeManagerPrompt = [{
+    type: "input",
+    name: "employeeManagerId",
+    message: magenta("Please enter the employee's manager's id")
+}]
+
+const updateEmployeeRolePrompt = [{
+    type: "input",
+    name: "employeeRoleId",
+    message: magenta("Please enter the employee's role id")
+}]
+
+const updateRolePrompt = [
+    {
+        type: "input",
+        name: "roleId",
+        message: magenta("please enter the id for the role you wish to update")
+
+    },
+    {
+        type: "list",
+        name: "roleMod",
+        message: magenta("Please select the data to be modified"),
+        choices: [
+            "role title",
+            "role salary",
+            "role department id",
+        ],
+    }
+]
+
+const updateRoleTitlePrompt = [{
+    type: "input",
+    name: "roleTitle",
+    message: magenta("Please enter the desired title")
+}]
+
+const updateRoleSalaryPrompt = [{
+    type: "input",
+    name: "roleSalary",
+    message: magenta("Please enter the salary for this role")
+}]
+
+const updateRoleDepartmentPrompt = [{
+    type: "input",
+    name: "roleDepartmentId",
+    message: magenta("Please enter the department Id for this role")
+}]
 
 // execute sql statement function 
 const executeSql = async function (sqlStatement) {
@@ -113,20 +192,20 @@ const executeSql = async function (sqlStatement) {
     });
     try {
         await client.connect();
-        
-        const result = await client.query(sqlStatement);
 
-        console.log(green(`Successfully connected to ` + yellow('worXpace_db')));
-        console.table(result.rows);
+        const result = await client.query(sqlStatement);
+        if(result.rowCount === 0){
+            console.log(red('💀 No Data has been modified, please ensure you have provided a valid value that corresponds to an existing record 💀'));
+        } else {
+            console.table(result.rows);
+        }
         promptUser();
     } catch (error) {
-        console.error(red(`Error - Query Failed to execute`, error));
+        console.error(red(`💀 Error - Query Failed to execute 💀`, error));
     } finally {
         await client.end();
     }
 }
-
-
 
 // prompt user
 function promptUser() {
@@ -139,37 +218,100 @@ function promptUser() {
                         executeSql(sqlStatement);
                         console.log((green(`the department `) + yellow(`${departmentAnswer.deptName}`) + green(` has been successfully added to the database!`)));
                     });
-
-            }
-            switch (answers.startOptions) {
+                    break;
                 case "add a role":
                     inquirer.prompt(addRolePrompt).then((roleAnswer) => {
                         const sqlStatement = `INSERT INTO role (title, salary, department_id) VALUES ('${roleAnswer.roleName}', '${roleAnswer.salary}', '${roleAnswer.deptId}')`;
                         executeSql(sqlStatement);
                         console.log((green(`the role `) + yellow(`${roleAnswer.roleName}`) + green(` has been successfully added to the database!`)));
                     });
-            }
-            switch (answers.startOptions) {
+                    break;
                 case "add an employee":
                     inquirer.prompt(addEmployeePrompt).then((employeeAnswer) => {
                         const sqlStatement = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${employeeAnswer.employeeFirstName}', '${employeeAnswer.employeeLastName}', '${employeeAnswer.employeeRoleId}', '${employeeAnswer.employeeManagerId}')`;
                         executeSql(sqlStatement);
-                        console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)));                        
+                        console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)));
                     });
-            }
-            switch (answers.startOptions) {
+                    break;
                 case "view all departments":
                     executeSql('Select * from department;');
-            }
-            switch (answers.startOptions) {
+                    break;
                 case "view all roles":
                     executeSql('Select * from role');
-            }
-            switch (answers.startOptions) {
+                    break;
                 case "view all employees":
                     executeSql('select * from employee');
+                    break;
+                case "update an employee":
+                    inquirer.prompt(updateEmployeePrompt)
+                        .then((updateEmployeeAnswer) => {
+                            let sqlStatement;
+                            switch (updateEmployeeAnswer.employeeMod) {
+                                case 'employee first name':
+                                    inquirer.prompt(updateEmployeeFirstNamePrompt).then((updateEmployeeFirstNameAnswer) => {
+                                        sqlStatement = `UPDATE employee SET first_name = '${updateEmployeeFirstNameAnswer.employeeFirstName}' WHERE id = ${updateEmployeeAnswer.employeeId}`;
+                                        executeSql(sqlStatement);
+                                        console.log(green(`A request to update the employee's first name to ` + yellow(`${updateEmployeeFirstNameAnswer.employeeFirstName}`) + green(` has been initiated`)));
+                                    });
+                                    break;
+                                case 'employee last name':
+                                    inquirer.prompt(updateEmployeeLastNamePrompt).then((updateEmployeeLastNameAnswer) => {
+                                        sqlStatement = `UPDATE employee SET last_name = '${updateEmployeeLastNameAnswer.employeeLastName}' WHERE id = ${updateEmployeeAnswer.employeeId}`;
+                                        executeSql(sqlStatement);
+                                        console.log(green(`A request to update the employee's last name to ` + yellow(`${updateEmployeeLastNameAnswer.employeeLastName}`) + green(` has been initiated`) ));
+                                    });
+                                    break;
+                                case 'employee role id':
+                                    inquirer.prompt(updateEmployeeRolePrompt).then((updateEmployeeRoleAnswer) => {
+                                        sqlStatement = `UPDATE employee SET role_id = '${updateEmployeeRoleAnswer.employeeRoleId}' WHERE id = ${updateEmployeeAnswer.employeeId}`;
+                                        executeSql(sqlStatement);
+                                        console.log(green(`A request to update the employee's role to ` + yellow(`${updateEmployeeRoleAnswer.employeeRoleId}`) + green(` has been initiated`) ));
+                                    });
+                                    break;
+                                case 'employee manager id':
+                                    inquirer.prompt(updateEmployeeManagerPrompt).then((updateEmployeeManagerAnswer) => {
+                                        sqlStatement = `UPDATE employee SET manager_id = '${updateEmployeeManagerAnswer.employeeManagerId}' WHERE id = ${updateEmployeeAnswer.employeeId}`;
+                                        executeSql(sqlStatement);
+                                        console.log(green(`A request to update the employee's manager id to ` + yellow(`${updateEmployeeManagerAnswer.employeeManagerId}`) + green(` has been initiated`)));
+                                    });
+                                    break;
+                            }
+                        });
+                    break;
+                case "update a role":
+                    inquirer.prompt(updateRolePrompt)
+                    .then((updateRoleAnswer) => {
+                        let sqlStatement;
+                        switch (updateRoleAnswer.roleMod) {
+                            case 'role title':
+                                inquirer.prompt(updateRoleTitlePrompt)
+                                .then((updateRoleTitleAnswer) => {
+                                    sqlStatement = `UPDATE role SET title = '${updateRoleTitleAnswer.roleTitle}' WHERE id = '${updateRoleAnswer.roleId}';`
+                                    executeSql(sqlStatement);
+                                    console.log(green(`A request to update the role's title to ` + yellow(`${updateRoleTitleAnswer.roleTitle}`) + green(` has been initiated`) ));
+                                })
+                                break;
+                            case 'role salary':
+                                inquirer.prompt(updateRoleSalaryPrompt)
+                                .then((updateRoleSalaryAnswer) => {
+                                    sqlStatement = `UPDATE role SET salary = '${updateRoleSalaryAnswer.roleSalary}' WHERE id = '${updateRoleAnswer.roleId}';`
+                                    executeSql(sqlStatement);
+                                    console.log(green(`A request to update the role's salary to` + yellow(`${updateRoleSalaryAnswer.roleSalary}`)  + green(` has been initiated`)));
+                                })
+                                break;
+                            case 'role department id':
+                                inquirer.prompt(updateRoleDepartmentPrompt)
+                                .then((updateRoleDepartmentAnswer) =>{
+                                    sqlStatement = `UPDATE role SET department_id = ${updateRoleDepartmentAnswer.roleDepartmentId} WHERE id = '${updateRoleAnswer.roleId}';`
+                                    executeSql(sqlStatement);
+                                    console.log(green(`A request to update the role's department id to` + yellow(`${updateRoleDepartmentAnswer.roleDepartmentId}`) + green(` has been initiated`)));
+                                })
+                                break;
+                        }
+                    });
+                    break;
             }
-        })
+        });
 }
 
 // initialize function
