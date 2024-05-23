@@ -66,8 +66,8 @@ const addRolePrompt = [
     // department
     {
         type: "input",
-        name: "dept",
-        message: magenta("Please specify which department this role belongs to")
+        name: "deptId",
+        message: magenta("Please specify the ID of department this role belongs to (must be an integer)")
     }
 ];
 
@@ -88,20 +88,22 @@ const addEmployeePrompt = [
     // employee role
     {
         type: "input",
-        name: "employeeRole",
-        message: magenta("Please enter the employee's role")
+        name: "employeeRoleId",
+        message: magenta("Please enter the employee's role id")
     },
     // employee manager
     {
         type: "input",
-        name: "employeeManager",
-        message: magenta("Please enter the employee's manager")
+        name: "employeeManagerId",
+        message: magenta("Please enter the employee's manager id")
     }
 ];
 
-const executeQuery = async function (filePath) {
-    const wrxpcQuery = fs.readFileSync(filePath, 'utf8');
-    // client config
+
+
+// execute sql statement function 
+const executeSql = async function (sqlStatement) {
+
     const client = new Client({
         user: process.env.USER,
         host: process.env.HOST,
@@ -111,58 +113,61 @@ const executeQuery = async function (filePath) {
     });
     try {
         await client.connect();
-        console.log(green(`Successfully connected to ` + yellow('worXpace_db')))
-        const result = await client.query(wrxpcQuery);
+        
+        const result = await client.query(sqlStatement);
 
-        console.log(green(`Query executed successfully`));
+        console.log(green(`Successfully connected to ` + yellow('worXpace_db')));
         console.table(result.rows);
         promptUser();
     } catch (error) {
-        console.error(red(`${wrxpcQuery} Error - Query Failed to execute`, error))
+        console.error(red(`Error - Query Failed to execute`, error));
     } finally {
         await client.end();
     }
+}
 
-};
+
 
 // prompt user
 function promptUser() {
-    // prompt for user input
     inquirer.prompt(startOptionsPrompt)
         .then((answers) => {
             switch (answers.startOptions) {
                 case "add a department":
                     inquirer.prompt(addDeptPrompt).then((departmentAnswer) => {
-                        console.log((green(`the department `) + yellow(`${departmentAnswer.deptName}`) + green(` has been successfully added to the database!`)))
+                        const sqlStatement = `INSERT INTO department (name) VALUES ('${departmentAnswer.deptName}')`
+                        executeSql(sqlStatement);
+                        console.log((green(`the department `) + yellow(`${departmentAnswer.deptName}`) + green(` has been successfully added to the database!`)));
                     });
-                // add department function needed (call function here)
+
             }
             switch (answers.startOptions) {
                 case "add a role":
                     inquirer.prompt(addRolePrompt).then((roleAnswer) => {
-                        console.log((green(`the role `) + yellow(`${roleAnswer.roleName}`) + green(` has been successfully added to the database!`)))
+                        const sqlStatement = `INSERT INTO role (title, salary, department_id) VALUES ('${roleAnswer.roleName}', '${roleAnswer.salary}', '${roleAnswer.deptId}')`;
+                        executeSql(sqlStatement);
+                        console.log((green(`the role `) + yellow(`${roleAnswer.roleName}`) + green(` has been successfully added to the database!`)));
                     });
-                // add role function call to be added here
             }
             switch (answers.startOptions) {
                 case "add an employee":
                     inquirer.prompt(addEmployeePrompt).then((employeeAnswer) => {
-                        console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)))
+                        const sqlStatement = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${employeeAnswer.employeeFirstName}', '${employeeAnswer.employeeLastName}', '${employeeAnswer.employeeRoleId}', '${employeeAnswer.employeeManagerId}')`;
+                        executeSql(sqlStatement);
+                        console.log((green(`the employee `) + yellow(`${employeeAnswer.employeeFirstName}` + " " + `${employeeAnswer.employeeLastName}`) + green(` has been successfully added to the database!`)));                        
                     });
-                // add employee function call to be added here
             }
             switch (answers.startOptions) {
                 case "view all departments":
-                    executeQuery('db/view-all-departments.sql');
-                    break;
+                    executeSql('Select * from department;');
             }
             switch (answers.startOptions) {
                 case "view all roles":
-                    executeQuery('db/view-all-roles.sql')
+                    executeSql('Select * from role');
             }
             switch (answers.startOptions) {
                 case "view all employees":
-                    executeQuery('db/view-all-employees.sql')
+                    executeSql('select * from employee');
             }
         })
 }
