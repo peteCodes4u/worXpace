@@ -194,7 +194,7 @@ const executeSql = async function (sqlStatement) {
         await client.connect();
 
         const result = await client.query(sqlStatement);
-        if(result.rowCount === 0){
+        if (result.rowCount === 0) {
             console.log(red('💀 No Data has been modified, please ensure you have provided a valid value that corresponds to an existing record 💀'));
         } else {
             console.table(result.rows);
@@ -234,13 +234,18 @@ function promptUser() {
                     });
                     break;
                 case "view all departments":
-                    executeSql('Select * from department;');
+                    executeSql('SELECT * FROM department;');
                     break;
                 case "view all roles":
-                    executeSql('Select * from role');
+                    executeSql('SELECT * FROM role;');
                     break;
                 case "view all employees":
-                    executeSql('select * from employee');
+                    executeSql(`
+                    SELECT e.id AS employee_id, e.first_name, e.last_name, r.title AS role_title, r.salary, d.name AS department_name, concat(m.first_name, ' ', m.last_name) as manager, r.id AS role_id, d.id AS department_id 
+                    FROM employee e 
+                    JOIN role r ON e.role_id = r.id 
+                    JOIN department d ON r.department_id = d.id
+                    LEFT JOIN employee m ON e.manager_id = m.id;`);
                     break;
                 case "update an employee":
                     inquirer.prompt(updateEmployeePrompt)
@@ -258,14 +263,14 @@ function promptUser() {
                                     inquirer.prompt(updateEmployeeLastNamePrompt).then((updateEmployeeLastNameAnswer) => {
                                         sqlStatement = `UPDATE employee SET last_name = '${updateEmployeeLastNameAnswer.employeeLastName}' WHERE id = ${updateEmployeeAnswer.employeeId}`;
                                         executeSql(sqlStatement);
-                                        console.log(green(`A request to update the employee's last name to ` + yellow(`${updateEmployeeLastNameAnswer.employeeLastName}`) + green(` has been initiated`) ));
+                                        console.log(green(`A request to update the employee's last name to ` + yellow(`${updateEmployeeLastNameAnswer.employeeLastName}`) + green(` has been initiated`)));
                                     });
                                     break;
                                 case 'employee role id':
                                     inquirer.prompt(updateEmployeeRolePrompt).then((updateEmployeeRoleAnswer) => {
                                         sqlStatement = `UPDATE employee SET role_id = '${updateEmployeeRoleAnswer.employeeRoleId}' WHERE id = ${updateEmployeeAnswer.employeeId}`;
                                         executeSql(sqlStatement);
-                                        console.log(green(`A request to update the employee's role to ` + yellow(`${updateEmployeeRoleAnswer.employeeRoleId}`) + green(` has been initiated`) ));
+                                        console.log(green(`A request to update the employee's role to ` + yellow(`${updateEmployeeRoleAnswer.employeeRoleId}`) + green(` has been initiated`)));
                                     });
                                     break;
                                 case 'employee manager id':
@@ -280,35 +285,35 @@ function promptUser() {
                     break;
                 case "update a role":
                     inquirer.prompt(updateRolePrompt)
-                    .then((updateRoleAnswer) => {
-                        let sqlStatement;
-                        switch (updateRoleAnswer.roleMod) {
-                            case 'role title':
-                                inquirer.prompt(updateRoleTitlePrompt)
-                                .then((updateRoleTitleAnswer) => {
-                                    sqlStatement = `UPDATE role SET title = '${updateRoleTitleAnswer.roleTitle}' WHERE id = '${updateRoleAnswer.roleId}';`
-                                    executeSql(sqlStatement);
-                                    console.log(green(`A request to update the role's title to ` + yellow(`${updateRoleTitleAnswer.roleTitle}`) + green(` has been initiated`) ));
-                                })
-                                break;
-                            case 'role salary':
-                                inquirer.prompt(updateRoleSalaryPrompt)
-                                .then((updateRoleSalaryAnswer) => {
-                                    sqlStatement = `UPDATE role SET salary = '${updateRoleSalaryAnswer.roleSalary}' WHERE id = '${updateRoleAnswer.roleId}';`
-                                    executeSql(sqlStatement);
-                                    console.log(green(`A request to update the role's salary to` + yellow(`${updateRoleSalaryAnswer.roleSalary}`)  + green(` has been initiated`)));
-                                })
-                                break;
-                            case 'role department id':
-                                inquirer.prompt(updateRoleDepartmentPrompt)
-                                .then((updateRoleDepartmentAnswer) =>{
-                                    sqlStatement = `UPDATE role SET department_id = ${updateRoleDepartmentAnswer.roleDepartmentId} WHERE id = '${updateRoleAnswer.roleId}';`
-                                    executeSql(sqlStatement);
-                                    console.log(green(`A request to update the role's department id to` + yellow(`${updateRoleDepartmentAnswer.roleDepartmentId}`) + green(` has been initiated`)));
-                                })
-                                break;
-                        }
-                    });
+                        .then((updateRoleAnswer) => {
+                            let sqlStatement;
+                            switch (updateRoleAnswer.roleMod) {
+                                case 'role title':
+                                    inquirer.prompt(updateRoleTitlePrompt)
+                                        .then((updateRoleTitleAnswer) => {
+                                            sqlStatement = `UPDATE role SET title = '${updateRoleTitleAnswer.roleTitle}' WHERE id = '${updateRoleAnswer.roleId}';`
+                                            executeSql(sqlStatement);
+                                            console.log(green(`A request to update the role's title to ` + yellow(`${updateRoleTitleAnswer.roleTitle}`) + green(` has been initiated`)));
+                                        })
+                                    break;
+                                case 'role salary':
+                                    inquirer.prompt(updateRoleSalaryPrompt)
+                                        .then((updateRoleSalaryAnswer) => {
+                                            sqlStatement = `UPDATE role SET salary = '${updateRoleSalaryAnswer.roleSalary}' WHERE id = '${updateRoleAnswer.roleId}';`
+                                            executeSql(sqlStatement);
+                                            console.log(green(`A request to update the role's salary to` + yellow(`${updateRoleSalaryAnswer.roleSalary}`) + green(` has been initiated`)));
+                                        })
+                                    break;
+                                case 'role department id':
+                                    inquirer.prompt(updateRoleDepartmentPrompt)
+                                        .then((updateRoleDepartmentAnswer) => {
+                                            sqlStatement = `UPDATE role SET department_id = ${updateRoleDepartmentAnswer.roleDepartmentId} WHERE id = '${updateRoleAnswer.roleId}';`
+                                            executeSql(sqlStatement);
+                                            console.log(green(`A request to update the role's department id to` + yellow(`${updateRoleDepartmentAnswer.roleDepartmentId}`) + green(` has been initiated`)));
+                                        })
+                                    break;
+                            }
+                        });
                     break;
             }
         });
