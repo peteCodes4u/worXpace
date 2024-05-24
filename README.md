@@ -17,7 +17,7 @@ In order to use this application install node.js and npm. If node.js is already 
 ## Usage Information
 The intended usage for this application is to manage business framework data with a postgres database.
 
-![](./assets/grfxDznr_Walktrhough.gif)
+![](./images/worXpace_demo.gif)
 
 ## Link to demo video
 https://drive.google.com/file/d/1AJL4aMCBsFHNSds_XXORm49JAtS1j3QO/view?usp=sharing
