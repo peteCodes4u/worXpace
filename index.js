@@ -36,7 +36,9 @@ const startOptionsPrompt = [
             "update an employee",
             "update a role",
             "Remove item from Database",
-            "View expense by department"
+            "View expense by department",
+            "View employees by department/manager",
+            "QUIT"
         ],
     }
 ];
@@ -212,6 +214,18 @@ const deleteEmployeePrompt = [{
     name: "employeeId",
     message: magenta("please enter the employee id")
 }]
+
+const viewEmployeebyPrompt = [
+    {
+        type: "list",
+        name: "viewBy",
+        message: magenta("please select an option"),
+        choices: [
+            "view employees by manager id",
+            "view employees by department id"
+        ]
+    }
+]
 
 
 // execute sql statement function 
@@ -390,6 +404,34 @@ function promptUser() {
                                 console.log(green(`Retrieving combined salaries for employes in department id ` + yellow(updateDepartmentAnswer.departmentId)))
                             })
                             break;
+                            case "View employees by department/manager":
+                                inquirer.prompt(viewEmployeebyPrompt)
+                                .then((viewEmployeeByAnswer) =>{
+                                    let sqlStatement;
+                                    switch (viewEmployeeByAnswer.viewBy) {
+                                        case 'view employees by manager id':
+                                            inquirer.prompt(updateEmployeeManagerPrompt)
+                                            .then((updateEmployeeAnswer) =>{
+                                                sqlStatement = `SELECT * FROM employee WHERE manager_id = ${updateEmployeeAnswer.employeeManagerId}`
+                                                executeSql(sqlStatement);
+                                                console.log(green(`Retrieving employees by manager Id ` + yellow(`updateEmployeeAnswer.employeeManagerId`)));
+                                            })
+                                            break;
+                                        case "view employees by department id":
+                                            inquirer.prompt(updateDepartmentPrompt)
+                                            .then((answer) =>{
+                                                sqlStatement = `SELECT e.first_name, e.last_name, r.title AS role_title, r.salary, d.name AS department_name, concat(m.first_name, ' ', m.last_name) as manager    
+                                                FROM employee e 
+                                                JOIN role r ON e.role_id = r.id 
+                                                JOIN department d ON r.department_id = d.id                 
+                                                LEFT JOIN employee m ON e.manager_id = m.id
+                                                WHERE d.id = ${answer.departmentId} ;`
+                                                executeSql(sqlStatement);
+                                                console.log(green(`Retrieving employee by department id ` + yellow(answer.departmentId)));
+                                            })
+                                            break;
+                                    }
+                                })
 
             }
         });
