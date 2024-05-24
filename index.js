@@ -7,9 +7,6 @@ require("dotenv").config();
 // import pg package for postgres SQL queries
 const { Client } = require('pg');
 
-// require file system
-const fs = require('fs');
-
 // terminal colors for messages
 const colors = require('colors');
 const green = colors.green;
@@ -18,7 +15,7 @@ const yellow = colors.yellow;
 const rainbow = colors.rainbow;
 const magenta = colors.magenta;
 
-// prompts
+// prompts for user menu
 const startOptionsPrompt = [
 
     // list to select view
@@ -103,13 +100,16 @@ const addEmployeePrompt = [
     }
 ];
 
+// prompt for updating an employee
 const updateEmployeePrompt = [
+    // retrieve employee by employeeId
     {
         type: "input",
         name: "employeeId",
         message: magenta("Please enter the employee's Id")
     },
 
+    // specify what data to modify
     {
         type: "list",
         name: "employeeMod",
@@ -123,37 +123,44 @@ const updateEmployeePrompt = [
     },
 ]
 
+// propmt to get first name value for update
 const updateEmployeeFirstNamePrompt = [{
     type: "input",
     name: "employeeFirstName",
     message: magenta("Please enter the employee's first name")
 }]
 
+// propmt to get last name value for update
 const updateEmployeeLastNamePrompt = [{
     type: "input",
     name: "employeeLastName",
     message: magenta("Please enter the employee's last name")
 }]
 
+// propmt to update manager id
 const updateEmployeeManagerPrompt = [{
     type: "input",
     name: "employeeManagerId",
     message: magenta("Please enter the employee's manager's id")
 }]
 
+// prompt to update employee role
 const updateEmployeeRolePrompt = [{
     type: "input",
     name: "employeeRoleId",
     message: magenta("Please enter the employee's role id")
 }]
 
+// prompt to update role data
 const updateRolePrompt = [
+    // prompt user to specify role id for modification
     {
         type: "input",
         name: "roleId",
         message: magenta("please enter the id for the role you wish to update")
 
     },
+    // provide user selections for data to modify
     {
         type: "list",
         name: "roleMod",
@@ -166,26 +173,31 @@ const updateRolePrompt = [
     }
 ]
 
+// prompt for updating role title
 const updateRoleTitlePrompt = [{
     type: "input",
     name: "roleTitle",
     message: magenta("Please enter the desired title")
 }]
 
+// prompt for updating role salary
 const updateRoleSalaryPrompt = [{
     type: "input",
     name: "roleSalary",
     message: magenta("Please enter the salary for this role")
 }]
 
+// prompt for updating role department
 const updateRoleDepartmentPrompt = [{
     type: "input",
     name: "roleDepartmentId",
     message: magenta("Please enter the department Id")
 }]
 
+// prompt for eliminating records from the database
 const removeFromDatabasePrompt = [
     {
+        // data to eliminate
         type: "list",
         name: "removeList",
         message: magenta("Please select the data you wish to eliminate from the database"),
@@ -197,24 +209,28 @@ const removeFromDatabasePrompt = [
     }
 ]
 
+// generic prompt for department id where applicable
 const updateDepartmentPrompt = [{
     type: "input",
     name: "departmentId",
     message: magenta("Please enter the department id")
 }]
 
+// prompt for deleting role by id
 const deleteRolePrompt = [{
     type: "input",
     name: "roleId",
     message: magenta("please enter the role id")
 }]
 
+// prompt for deleting employee by id
 const deleteEmployeePrompt = [{
     type: "input",
     name: "employeeId",
     message: magenta("please enter the employee id")
 }]
 
+// prompt for retrieving employee data by manager/department
 const viewEmployeebyPrompt = [
     {
         type: "list",
@@ -227,10 +243,10 @@ const viewEmployeebyPrompt = [
     }
 ]
 
-
-// execute sql statement function 
+// function to execute sql statemtns
 const executeSql = async function (sqlStatement) {
 
+    // establish client for connection to db via .env variables
     const client = new Client({
         user: process.env.USER,
         host: process.env.HOST,
@@ -239,15 +255,22 @@ const executeSql = async function (sqlStatement) {
         port: process.env.PORT
     });
     try {
+        // connect client to database
         await client.connect();
 
+        // execute sql statement
         const result = await client.query(sqlStatement);
+
+        // error handling for situations that affect 0 rows  
         if (result.rowCount === 0) {
             console.log(red('💀 hmmmm... no records identified, please ensure you have provided a valid value that corresponds to an existing record 💀'));
         } else {
+            // render query results in the terminal
             console.table(result.rows);
             console.log(green('request has executed successfully'))
         }
+
+        // envoke prompt user after query execution
         promptUser();
     } catch (error) {
         console.error(red(`💀 Error - Query Failed to execute 💀`, error));
@@ -256,8 +279,9 @@ const executeSql = async function (sqlStatement) {
     }
 }
 
-// prompt user
+// prompt user function with switch cases for handling application workflow
 function promptUser() {
+    // main menu prompt
     inquirer.prompt(startOptionsPrompt)
         .then((answers) => {
             switch (answers.startOptions) {
@@ -364,74 +388,74 @@ function promptUser() {
                             }
                         });
                     break;
-                    case "Remove item from Database":
-                        inquirer.prompt(removeFromDatabasePrompt)
+                case "Remove item from Database":
+                    inquirer.prompt(removeFromDatabasePrompt)
                         .then((removeFromDatabaseAnswer) => {
                             let sqlStatement;
-                            switch(removeFromDatabaseAnswer.removeList){
+                            switch (removeFromDatabaseAnswer.removeList) {
                                 case "delete a department":
                                     inquirer.prompt(updateDepartmentPrompt)
-                                    .then((updateDepartmentAnswer) =>{
-                                        sqlStatement = `DELETE from department where id = '${updateDepartmentAnswer.departmentId}';`
-                                        executeSql(sqlStatement);
-                                        console.log(green(`A DELETE request for department with id `+ red(`${updateDepartmentAnswer.departmentId}` + green(` has been initiated`))));
-                                    })
+                                        .then((updateDepartmentAnswer) => {
+                                            sqlStatement = `DELETE from department where id = '${updateDepartmentAnswer.departmentId}';`
+                                            executeSql(sqlStatement);
+                                            console.log(green(`A DELETE request for department with id ` + red(`${updateDepartmentAnswer.departmentId}` + green(` has been initiated`))));
+                                        })
                                     break;
                                 case "delete a role":
                                     inquirer.prompt(deleteRolePrompt)
-                                    .then((deleteRoleAnswer) =>{
-                                        sqlStatement = `DELETE from role where id = '${deleteRoleAnswer.roleId}';`
-                                         executeSql(sqlStatement);
-                                        console.log(green(`A DELETE request for department with id ` + red(`${deleteRoleAnswer.roleId}` + green(` has been initiated`))));
-                                    })
+                                        .then((deleteRoleAnswer) => {
+                                            sqlStatement = `DELETE from role where id = '${deleteRoleAnswer.roleId}';`
+                                            executeSql(sqlStatement);
+                                            console.log(green(`A DELETE request for department with id ` + red(`${deleteRoleAnswer.roleId}` + green(` has been initiated`))));
+                                        })
                                     break;
                                 case "delete an employee":
                                     inquirer.prompt(deleteEmployeePrompt)
-                                    .then((deleteEmployeeAnswer) =>{
-                                        sqlStatement = `DELETE from employee where id = '${deleteEmployeeAnswer.employeeId}';`
-                                        executeSql(sqlStatement);
-                                        console.log(green(`A DELETE request for employee with id `+ red(`${deleteEmployeeAnswer.employeeId}` + green(` has been inititated`))))
-                                    })
+                                        .then((deleteEmployeeAnswer) => {
+                                            sqlStatement = `DELETE from employee where id = '${deleteEmployeeAnswer.employeeId}';`
+                                            executeSql(sqlStatement);
+                                            console.log(green(`A DELETE request for employee with id ` + red(`${deleteEmployeeAnswer.employeeId}` + green(` has been inititated`))))
+                                        })
                                     break;
                             }
                         });
-                        break;
-                        case "View expense by department":
-                            inquirer.prompt(updateDepartmentPrompt)
-                            .then((updateDepartmentAnswer) =>{
-                                sqlStatement = `SELECT d.name AS department_name, SUM(r.salary) AS total_salary FROM role r JOIN department d ON r.department_id = d.id WHERE r.department_id = ${updateDepartmentAnswer.departmentId} GROUP BY d.name;`
-                                executeSql(sqlStatement);
-                                console.log(green(`Retrieving combined salaries for employes in department id ` + yellow(updateDepartmentAnswer.departmentId)))
-                            })
-                            break;
-                            case "View employees by department/manager":
-                                inquirer.prompt(viewEmployeebyPrompt)
-                                .then((viewEmployeeByAnswer) =>{
-                                    let sqlStatement;
-                                    switch (viewEmployeeByAnswer.viewBy) {
-                                        case 'view employees by manager id':
-                                            inquirer.prompt(updateEmployeeManagerPrompt)
-                                            .then((updateEmployeeAnswer) =>{
-                                                sqlStatement = `SELECT * FROM employee WHERE manager_id = ${updateEmployeeAnswer.employeeManagerId}`
-                                                executeSql(sqlStatement);
-                                                console.log(green(`Retrieving employees by manager Id ` + yellow(`updateEmployeeAnswer.employeeManagerId`)));
-                                            })
-                                            break;
-                                        case "view employees by department id":
-                                            inquirer.prompt(updateDepartmentPrompt)
-                                            .then((answer) =>{
-                                                sqlStatement = `SELECT e.first_name, e.last_name, r.title AS role_title, r.salary, d.name AS department_name, concat(m.first_name, ' ', m.last_name) as manager    
+                    break;
+                case "View expense by department":
+                    inquirer.prompt(updateDepartmentPrompt)
+                        .then((updateDepartmentAnswer) => {
+                            sqlStatement = `SELECT d.name AS department_name, SUM(r.salary) AS total_salary FROM role r JOIN department d ON r.department_id = d.id WHERE r.department_id = ${updateDepartmentAnswer.departmentId} GROUP BY d.name;`
+                            executeSql(sqlStatement);
+                            console.log(green(`Retrieving combined salaries for employes in department id ` + yellow(updateDepartmentAnswer.departmentId)))
+                        })
+                    break;
+                case "View employees by department/manager":
+                    inquirer.prompt(viewEmployeebyPrompt)
+                        .then((viewEmployeeByAnswer) => {
+                            let sqlStatement;
+                            switch (viewEmployeeByAnswer.viewBy) {
+                                case 'view employees by manager id':
+                                    inquirer.prompt(updateEmployeeManagerPrompt)
+                                        .then((updateEmployeeAnswer) => {
+                                            sqlStatement = `SELECT * FROM employee WHERE manager_id = ${updateEmployeeAnswer.employeeManagerId}`
+                                            executeSql(sqlStatement);
+                                            console.log(green(`Retrieving employees by manager Id ` + yellow(`updateEmployeeAnswer.employeeManagerId`)));
+                                        })
+                                    break;
+                                case "view employees by department id":
+                                    inquirer.prompt(updateDepartmentPrompt)
+                                        .then((answer) => {
+                                            sqlStatement = `SELECT e.first_name, e.last_name, r.title AS role_title, r.salary, d.name AS department_name, concat(m.first_name, ' ', m.last_name) as manager    
                                                 FROM employee e 
                                                 JOIN role r ON e.role_id = r.id 
                                                 JOIN department d ON r.department_id = d.id                 
                                                 LEFT JOIN employee m ON e.manager_id = m.id
                                                 WHERE d.id = ${answer.departmentId} ;`
-                                                executeSql(sqlStatement);
-                                                console.log(green(`Retrieving employee by department id ` + yellow(answer.departmentId)));
-                                            })
-                                            break;
-                                    }
-                                })
+                                            executeSql(sqlStatement);
+                                            console.log(green(`Retrieving employee by department id ` + yellow(answer.departmentId)));
+                                        })
+                                    break;
+                            }
+                        })
 
             }
         });
