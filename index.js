@@ -35,6 +35,7 @@ const startOptionsPrompt = [
             "add an employee",
             "update an employee",
             "update a role",
+            "Remove item from Database"
         ],
     }
 ];
@@ -177,8 +178,40 @@ const updateRoleSalaryPrompt = [{
 const updateRoleDepartmentPrompt = [{
     type: "input",
     name: "roleDepartmentId",
-    message: magenta("Please enter the department Id for this role")
+    message: magenta("Please enter the department Id")
 }]
+
+const removeFromDatabasePrompt = [
+    {
+        type: "list",
+        name: "removeList",
+        message: magenta("Please select the data you wish to eliminate from the database"),
+        choices: [
+            "delete a department",
+            "delete a role",
+            "delete an employee"
+        ]
+    }
+]
+
+const updateDepartmentPrompt = [{
+    type: "input",
+    name: "departmentId",
+    message: magenta("Please enter the department id")
+}]
+
+const deleteRolePrompt = [{
+    type: "input",
+    name: "roleId",
+    message: magenta("please enter the role id")
+}]
+
+const deleteEmployeePrompt = [{
+    type: "input",
+    name: "employeeId",
+    message: magenta("please enter the employee id")
+}]
+
 
 // execute sql statement function 
 const executeSql = async function (sqlStatement) {
@@ -198,6 +231,7 @@ const executeSql = async function (sqlStatement) {
             console.log(red('💀 No Data has been modified, please ensure you have provided a valid value that corresponds to an existing record 💀'));
         } else {
             console.table(result.rows);
+            console.log(green('request has executed successfully'))
         }
         promptUser();
     } catch (error) {
@@ -315,6 +349,37 @@ function promptUser() {
                             }
                         });
                     break;
+                    case "Remove item from Database":
+                        inquirer.prompt(removeFromDatabasePrompt)
+                        .then((removeFromDatabaseAnswer) => {
+                            let sqlStatement;
+                            switch(removeFromDatabaseAnswer.removeList){
+                                case "delete a department":
+                                    inquirer.prompt(updateDepartmentPrompt)
+                                    .then((updateDepartmentAnswer) =>{
+                                        sqlStatement = `DELETE from department where id = '${updateDepartmentAnswer.departmentId}';`
+                                        executeSql(sqlStatement);
+                                        console.log(green(`A DELETE request for department with id `+ red(`${updateDepartmentAnswer.departmentId}` + green(` has been initiated`))));
+                                    })
+                                    break;
+                                case "delete a role":
+                                    inquirer.prompt(deleteRolePrompt)
+                                    .then((deleteRoleAnswer) =>{
+                                        sqlStatement = `DELETE from role where id = '${deleteRoleAnswer.roleId}';`
+                                         executeSql(sqlStatement);
+                                        console.log(green(`A DELETE request for department with id ` + red(`${deleteRoleAnswer.roleId}` + green(` has been initiated`))));
+                                    })
+                                    break;
+                                case "delete an employee":
+                                    inquirer.prompt(deleteEmployeePrompt)
+                                    .then((deleteEmployeeAnswer) =>{
+                                        sqlStatement = `DELETE from employee where id = '${deleteEmployeeAnswer.employeeId}';`
+                                        executeSql(sqlStatement);
+                                        console.log(green(`A DELETE request for employee with id `+ red(`${deleteEmployeeAnswer.employeeId}` + green(` has been inititated`))))
+                                    })
+                                    break;
+                            }
+                        })
             }
         });
 }
