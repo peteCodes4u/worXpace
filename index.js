@@ -243,7 +243,7 @@ const executeSql = async function (sqlStatement) {
 
         const result = await client.query(sqlStatement);
         if (result.rowCount === 0) {
-            console.log(red('💀 No Data has been modified, please ensure you have provided a valid value that corresponds to an existing record 💀'));
+            console.log(red('💀 hmmmm... no records identified, please ensure you have provided a valid value that corresponds to an existing record 💀'));
         } else {
             console.table(result.rows);
             console.log(green('request has executed successfully'))
