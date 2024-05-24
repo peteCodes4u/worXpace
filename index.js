@@ -35,7 +35,8 @@ const startOptionsPrompt = [
             "add an employee",
             "update an employee",
             "update a role",
-            "Remove item from Database"
+            "Remove item from Database",
+            "View expense by department"
         ],
     }
 ];
@@ -379,7 +380,17 @@ function promptUser() {
                                     })
                                     break;
                             }
-                        })
+                        });
+                        break;
+                        case "View expense by department":
+                            inquirer.prompt(updateDepartmentPrompt)
+                            .then((updateDepartmentAnswer) =>{
+                                sqlStatement = `SELECT d.name AS department_name, SUM(r.salary) AS total_salary FROM role r JOIN department d ON r.department_id = d.id WHERE r.department_id = ${updateDepartmentAnswer.departmentId} GROUP BY d.name;`
+                                executeSql(sqlStatement);
+                                console.log(green(`Retrieving combined salaries for employes in department id ` + yellow(updateDepartmentAnswer.departmentId)))
+                            })
+                            break;
+
             }
         });
 }
